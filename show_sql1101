@@ -1,0 +1,17 @@
+select t5.requestId,t5.impressid,t5.castid,t5.ds,replaceCTR,cast(sum(isShow) as bigint) as sumshownum,cast(sum(winprice) as double ) as sumwinprice,if(sum(winprice) is null,500000,sum(winprice)) as replaceECPM from 
+(select t4.ds,t4.requestId,t4.impressid,t4.castid,if(adxPidPlatCTRorVTR is null,0.001,adxPidPlatCTRorVTR) as replaceCTR,winprice,isShow from 
+(select t3.ds,t3.requestId,t3.impressid,t3.castid,t3.adxPidPlatCTRorVTR,winprice,isShow 
+from 
+(
+select t1.requestId,t1.impressid,t1.castid,t1.ds,t1.ts,t1.abtestname,t1.adxpid,t2.adtype_group_name as adType,t1.clienttype,t1.costtype,t1.winprice,t1.idealength,t1.adxPidPlatCTRorVTR,t1.isShow 
+from 
+(select ds,ts,abtestname,adxpid,if(clientType="app" or clienttype="web",clienttype,"web") as clienttype,
+costtype,winprice,idealength,1 as adxPidPlatCTRorVTR,1 as isShow,requestId,impressid,castid,ischeat,if(market is null,1,market) as market,ideasize,ideaid,cookie 
+from ytad.ods_dsp_show_d 
+where ds = '20161026' and cookie != "" and market=1 and ((ischeat=0) or (ischeat=2))
+)t1 left outer join 
+(select * from ytad.dim_add_adx_slot)t2 
+on t1.adxPid = t2.slot_id
+)t3
+)t4 
+)t5 group by t5.requestId,t5.impressid,t5.castid,t5.ds,replaceCTR
