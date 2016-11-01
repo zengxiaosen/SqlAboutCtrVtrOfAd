@@ -1,0 +1,9 @@
+select requestid,impressionid,castid,ts,ds,price,ctr,adjustedctr,ecpm from ytad.ods_dsp_rank_cast_d 
+where ds='20161026' and cookie != "" and market=1 
+
+select requestid,impressid,castid,ts,ds,sum(isDspFee) as sum_isDspFee,sum(winprice) as sum_dspFee from   
+(select requestid,impressid,castid,ts,ds,1 as isDspFee,winprice from ytad.ods_dsp_fee_d 
+where ds='20161026' and market=1)t1 group by requestid,impressid,castid,ts,ds
+
+select requestid,impressid,castid,ts,ds,1 as isclick from ytad.ods_dsp_click_d 
+where ds='20161026' and cookie != "" and market=1 
