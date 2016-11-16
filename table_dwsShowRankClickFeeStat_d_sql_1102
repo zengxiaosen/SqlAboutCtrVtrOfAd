@@ -1,0 +1,58 @@
+create table if not exists ytad_dev.dws_dsp_ShowRankClickFeeStat_d(
+requestId string ,
+impressid string ,
+castid string ,
+ds string ,
+abtestname string ,
+adxpid string ,
+adType string ,
+clienttype string ,
+costtype string ,
+sumwinprice double ,
+idealength string ,
+adxPidPlatCTRorVTR string ,
+sumshownum bigint ,
+price string,
+ctr double,
+replaceCTR string ,
+replaceECPM string ,
+sum_isDspFee bigint ,
+sum_dspFee double ,
+sum_isclick bigint 
+)lifecycle 365;
+
+
+insert overwrite table ytad_dev.dws_dsp_ShowRankClickFeeStat_d 
+select t12.requestId,t12.impressid,t12.castid,t12.ds,t12.abtestname,t12.adxpid,t12.adType,t12.clienttype,t12.costtype,t12.sumwinprice,t12.idealength,t12.adxPidPlatCTRorVTR,t12.sumshownum,t13.price,t13.ctr,t12.replaceCTR,t12.replaceECPM,t12.sum_isDspFee,t12.sum_dspFee,t12.sum_isclick from 
+(select t9.requestId,t9.impressid,t9.castid,t9.ds,t9.replaceCTR,t9.abtestname,t9.adxpid,t9.adType,t9.clienttype,t9.costtype,t9.idealength,t9.adxPidPlatCTRorVTR,t9.sumshownum,t9.sumwinprice,t9.replaceECPM,t9.sum_isclick,t11.sum_isDspFee,t11.sum_dspFee from  
+(select t8.requestId,t8.impressid,t8.castid,t8.ds,t8.replaceCTR,t8.abtestname,t8.adxpid,t8.adType,t8.clienttype,t8.costtype,t8.idealength,t8.adxPidPlatCTRorVTR,t8.sumshownum,t8.sumwinprice,cast(t8.replaceECPM as string) as replaceECPM,t8.sum_isclick from 
+(select t6.requestId,t6.impressid,t6.castid,t6.ds,t6.replaceCTR,t6.abtestname,t6.adxpid,t6.adType,t6.clienttype,t6.costtype,t6.idealength,t6.adxPidPlatCTRorVTR,t6.sumshownum,t6.sumwinprice,cast(t6.replaceECPM as double) as replaceECPM,t7.sum_isclick from 
+(select t5.requestId,t5.impressid,t5.castid,t5.adxPidPlatCTRorVTR,t5.ds,replaceCTR,t5.abtestname,t5.adxpid,t5.adType,t5.clienttype,t5.costtype,t5.idealength,cast(sum(isShow) as bigint) as sumshownum,cast(sum(winprice) as double ) as sumwinprice,if(sum(winprice) is null,500000,sum(winprice)) as replaceECPM from 
+(select t4.ds,t4.requestId,t4.impressid,t4.castid,t4.adxPidPlatCTRorVTR,if(adxPidPlatCTRorVTR is null,0.001,adxPidPlatCTRorVTR) as replaceCTR,winprice,isShow,t4.abtestname,t4.adxpid,t4.adType,t4.clienttype,t4.costtype,t4.idealength   from 
+(select t3.ds,t3.requestId,t3.impressid,t3.castid,t3.adxPidPlatCTRorVTR,winprice,isShow,t3.abtestname,t3.adxpid,t3.adType,t3.clienttype,t3.costtype,t3.idealength     
+from 
+(
+select t1.requestId,t1.impressid,t1.castid,t1.ds,t1.ts,t1.abtestname,t1.adxpid,t2.adtype_group_name as adType,t1.clienttype,t1.costtype,t1.winprice,t1.idealength,t1.adxPidPlatCTRorVTR,t1.isShow 
+from 
+(select ds,ts,abtestname,adxpid,if(clientType="app" or clienttype="web",clienttype,"web") as clienttype,
+costtype,winprice,idealength,1 as adxPidPlatCTRorVTR,1 as isShow,requestId,impressid,castid,ischeat,if(market is null,1,market) as market,ideasize,ideaid,cookie 
+from ytad.ods_dsp_show_d 
+where ds = '20161026' and cookie != "" and market=1 and ((ischeat=0) or (ischeat=2))
+)t1 left outer join 
+(select * from ytad.dim_add_adx_slot)t2 
+on t1.adxPid = t2.slot_id
+)t3
+)t4 
+)t5 group by t5.requestId,t5.impressid,t5.castid,t5.ds,replaceCTR,t5.abtestname,t5.adxpid,t5.adType,t5.clienttype,t5.costtype,t5.idealength,t5.adxPidPlatCTRorVTR)t6 
+left outer join 
+(select requestid,impressid,castid,ds,cast(sum(isclick) as bigint ) as sum_isclick from  
+(select requestid,impressid,castid,ts,ds,1 as isclick from ytad.ods_dsp_click_d 
+where ds='20161026' and cookie != "" and market=1)t0 group by requestid,impressid,castid,ds)t7 
+on t6.requestId = t7.requestid and t6.impressid = t7.impressid and t6.castid = t7.castid and t6.ds = t7.ds)t8)t9 
+left outer join (select requestid,impressid,castid,ds,cast(sum(isDspFee) as bigint ) as sum_isDspFee,cast(sum(winprice) as double ) as sum_dspFee from   
+(select requestid,impressid,castid,ts,ds,1 as isDspFee,winprice from ytad.ods_dsp_fee_d 
+where ds='20161026' and market=1)t10 group by requestid,impressid,castid,ds)t11 on t9.requestId = t11.requestid and 
+t9.impressid = t11.impressid and t9.castid = t11.castid and t9.ds = t11.ds)t12 left outer join 
+(select requestid,impressionid,castid,ts,ds,price,ctr,adjustedctr,ecpm 
+from ytad.ods_dsp_rank_cast_d where ds='20161026' and cookie != "" and market=1)t13 on t12.requestId = t13.requestid and 
+t12.impressid = t13.impressionid and t12.castid = t13.castid and t12.ds = t13.ds
