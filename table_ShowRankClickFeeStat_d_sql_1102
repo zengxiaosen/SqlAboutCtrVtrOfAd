@@ -12,9 +12,11 @@ sumwinprice double ,
 idealength string ,
 adxPidPlatCTRorVTR string ,
 sumshownum bigint ,
+price string,
+ctr double,
 replaceCTR string ,
-replaceECPM double ,
+replaceECPM string ,
 sum_isDspFee bigint ,
 sum_dspFee double ,
 sum_isclick bigint 
-)lifecycle 10;
+)lifecycle 365;
