@@ -1,3 +1,22 @@
+create table if not exists ytad_dev.dws_dsp_kpishowrankclickfeestat_d
+(
+ds
+abtestname
+adxpid
+adType
+showNum
+showVolumne
+showAdCount
+yesFee
+dspFeeNum
+dspFee
+bidECPM
+absCTRorVTR
+noCPMCount
+clickImp_size
+)
+lifecycle 365;
+insert overwrite table ytad_dev.dws_dsp_kpishowrankclickfeestat_d 
 select ds,abtestname,adxpid,adType,impSet_size as showNum,showVolumne,showAdCount,clickAdCount,yesFee,dspFeeNum,dspFee,bidECPM,absCTROrVTR,noCPMCount,clickImp_size from 
 (select ds,abtestname,adxpid,adType,count(distinct impressid) as impSet_size,sum(showVolumne) as showVolumne,sum(showAdCount) as showAdCount,
 count(distinct pre_impressid) as clickImp_size,sum(IsClick) as clickAdCount,sum(yesFee/100000) as yesFee,sum(dspFeeNum) as dspFeeNum,
@@ -7,6 +26,6 @@ t1.sumshownum as showAdCount,t1.pre_impressid,t1.sum_isclick as IsClick,t1.sumwi
 t1.sum_dspFee as dspFee,t1.replaceECPM as bidECPM,abs((t1.adxPidPlatCTRorVTR-t1.replaceCTR)) as absCTROrVTR,if(t1.costtype = 0,0,1) as noCPMcount    
 from (select t0.ds,t0.abtestname,t0.adxpid,t0.adType,t0.impressid,cast(t0.idealength as bigint ) as idealength,t0.sumshownum,if(t0.sum_isclick = 1.0,t0.impressid,0) as pre_impressid,
 t0.sum_isclick,t0.sumwinprice,t0.sum_isDspFee,t0.sum_dspFee,t0.replaceECPM,t0.adxPidPlatCTRorVTR,cast(t0.replaceCTR as bigint) as replaceCTR,t0.costtype 
-from (select ds,abtestname,adxpid,adType,impressid,idealength,sumshownum,sum_isclick,sumwinprice,sum_isDspFee,sum_dspFee,replaceECPM,adxPidPlatCTRorVTR,replaceCTR,costtype 
+from (select ds,abtestname,adxpid,adType,impressid,idealength,sumshownum,sum_isclick,sumwinprice,sum_isDspFee,sum_dspFee,cast(replaceECPM as double) as replaceECPM,adxPidPlatCTRorVTR,replaceCTR,costtype 
 from ods_dsp_showrankclickfeestat_d2
 )t0)t1)t2 group by ds,abtestname,adxpid,adType)t3
