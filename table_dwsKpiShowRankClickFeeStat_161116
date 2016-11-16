@@ -16,6 +16,8 @@ noCPMCount
 clickImp_size
 )
 lifecycle 365;
+
+
 insert overwrite table ytad_dev.dws_dsp_kpishowrankclickfeestat_d 
 select ds,abtestname,adxpid,adType,impSet_size as showNum,showVolumne,showAdCount,clickAdCount,yesFee,dspFeeNum,dspFee,bidECPM,absCTROrVTR,noCPMCount,clickImp_size from 
 (select ds,abtestname,adxpid,adType,count(distinct impressid) as impSet_size,sum(showVolumne) as showVolumne,sum(showAdCount) as showAdCount,
