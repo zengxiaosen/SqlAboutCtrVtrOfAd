@@ -1,0 +1,8 @@
+select t1.clienttype,t1.adxpid,t1.viewCount,t2.showCount,(cast(if(t1.viewCount is null, 0, t1.viewCount) as double) / cast(if(t2.showCount is null,0,t2.showCount) as double)) as vtr from
+(select clienttype,adxpid,count(*) as viewCount from ytad.ods_dsp_trueview_d 
+where ds = 20161120 and (clienttype = "app" or clienttype = "web") 
+and ischeat != 1 and logtype = 3 and adxpid != "" 
+group by clienttype,adxpid)t1 left outer join (
+select clienttype,adxpid,count(*) as showCount from ytad.ods_dsp_show_d where ds = 20161120 and (clienttype = "app" or clienttype = "web") and ischeat != 1 and  costtype = 3 
+and adxpid != "" group by clienttype,adxpid)t2 
+on  t1.clienttype = t2.clienttype and t1.adxpid = t2.adxpid
